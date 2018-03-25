@@ -70,12 +70,33 @@ class ReflexAgent(Agent):
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
+        oldFood = currentGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
-        "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        if action == 'Stop':
+            return -10000
 
+
+
+        "food scores"
+        food_list = oldFood.asList()
+        food_distances = []
+        for food in food_list:
+          food_distances.append(-(util.manhattanDistance(newPos, food)))
+
+        if food_distances != []:
+          closet_food_score = max(food_distances)
+        else:
+          closet_food_score = 0
+
+
+        "ghost scores"
+        if newPos in [ghost.getPosition() for ghost in newGhostStates]:
+          return -999999999
+
+
+        return closet_food_score
 def scoreEvaluationFunction(currentGameState):
     """
       This default evaluation function just returns the score of the state.
