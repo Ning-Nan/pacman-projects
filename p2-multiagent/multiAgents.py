@@ -82,13 +82,10 @@ class ReflexAgent(Agent):
         # Capsules are not belong to food
         # print successorGameState.getCapsules()
 
-        new_score = 1
-
         # Stop action will not take as we usually not stop in the game
         if action == 'Stop':
           return -99999
 
-        "Food distance scores"
         # get the distance list from agent to foods
         food_distances = []
 
@@ -97,26 +94,7 @@ class ReflexAgent(Agent):
 
         # Transfer the min distance to the highest score
         if food_distances != []:
-          food_score = 1/(min(food_distances))
-          new_score = new_score * food_score
-
-
-        "Ghost distance scores"
-        
-        for ghostState in newGhostStates:
-          #print ghostState.getPosition()
-          # Ghost is not scared, further then score higher
-          if ghostState.scaredTimer == 0:
-            ghost_score1 = util.manhattanDistance(newPosition, ghostState.getPosition())
-            new_score = ghost_score1 * new_score
-          
-          # Ghost is scared, then closet has the highest score
-          if ghostState.scaredTimer > 0:
-            ghost_score2 = 1/(util.manhattanDistance(newPosition, ghostState.getPosition()))
-            new_score = new_score * ghost_score2
-
-        #new_score = food_score * ghost_score1 * ghost_score2
-
+          newScore += 1/(min(food_distances))
 
         return newScore
 
