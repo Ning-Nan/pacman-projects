@@ -201,6 +201,43 @@ class MinimaxAgent(MultiAgentSearchAgent):
         # best_move[0] is score
         return best_move[1]
 
+        "Reason that not using the design below"
+        # For matching format learned from lecture"
+        # For designing next question easier
+        
+        "Another Design"
+        """
+        score =  float("-inf")   #the smallest number
+        bestAction = None
+
+        for action in gameState.getLegalActions(0):
+            #print action
+
+            newScore = self.gotScore(gameState.generateSuccessor(0, action), self.depth * gameState.getNumAgents() - 1)
+
+            if score < newScore:
+                score = newScore
+                bestAction = action
+        return bestAction
+
+    def gotScore(self, gameState, depth):
+                #reach bottom or game over
+        if depth == 0 or gameState.isWin() or gameState.isLose() :
+            return self.evaluationFunction(gameState)
+
+        numberOfAgents = gameState.getNumAgents()
+                # index = 0 or 1 or 2
+        index = (numberOfAgents - (depth % numberOfAgents)) % numberOfAgents
+        #print index
+
+        scores = [self.gotScore(gameState.generateSuccessor(index, action), depth - 1) for action in gameState.getLegalActions(index)]
+        #print scores
+        #index 0 mean pacman
+        if index == 0:
+          return max(scores)  #max for pacman
+        else:
+          return min(scores)   #min for ghost
+        """
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
