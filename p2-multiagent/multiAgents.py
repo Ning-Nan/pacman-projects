@@ -248,8 +248,91 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # For pacman find the best score
+        def max_finder(state, current_depth, alpha, beta):
+            
+            # if game end or reached the given depth, return the score
+            if state.isWin() or state.isLose() or current_depth == self.depth:
+              return (self.evaluationFunction(state), "Stop")
+
+
+            #lowest value
+            max_score = float('-Inf')
+            best_move = 'Stop'
+
+            # Pacman legal actions
+            actions = state.getLegalActions(0)
+
+            for action in actions:
+              # Stop have no need to consider about
+              if action == "Stop":
+                continue
+
+              # find the max score from the scores that the ghosts try to decrease
+              current_score = min_finder(state.generateSuccessor(0, action), current_depth, 1, alpha, beta)
+
+              if current_score > max_score:
+                max_score = current_score
+                best_move = action
+
+              # if current score is higher than beta, then no need to take next action.
+              if (max_score > beta):
+                return (max_score, best_move)
+
+              # update alpha
+              alpha = max(alpha, max_score)
+            # here returned score + action, action is used for the return to getAction
+            return (max_score, best_move)
+
+        # for ghost find the min score
+        def min_finder(state,current_depth,ghost_index, alpha, beta):
+
+          if state.isWin() or state.isLose():
+              return self.evaluationFunction(state)
+
+          min_score = float('Inf')
+
+          actions = state.getLegalActions(ghost_index)
+
+          # Note: every action of every ghost should be considered
+          for action in actions:
+
+            # Is the last ghost, just loop in the actions to get the min score
+            if ghost_index == state.getNumAgents()-1:
+
+              next_max = max_finder(state.generateSuccessor(ghost_index, action), current_depth + 1 , alpha, beta)
+
+              min_score = min(next_max[0], min_score)
+
+            # Still has next ghost, no need to loop this ghost's actions first, just jump to next.
+            # The actions loop should begin from the last ghost
+            else:
+
+              next_ghost_min = min_finder(state.generateSuccessor(ghost_index, action),current_depth, ghost_index + 1, alpha, beta)
+              min_score = min(min_score, next_ghost_min)
+
+            # if current score is lower than alpha, there is no need to take the next action
+            if min_score < alpha:
+              return min_score
+
+            # update the beta
+            beta = min(min_score,beta)
+
+
+
+          return min_score
+
+        # start of get action
+        current_depth = 0
+
+        # init alpha and beta
+        alpha = float('-Inf')
+        beta = float('Inf')
+
+        best_move = max_finder(gameState, current_depth, alpha, beta)
+
+        # best_move[0] is score
+        return best_move[1]
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
