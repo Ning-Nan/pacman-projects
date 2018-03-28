@@ -386,8 +386,24 @@ def betterEvaluationFunction(currentGameState):
       DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    import numpy
+    foodPos = currentGameState.getFood().asList()
 
+    #current pacman position
+    current = list(currentGameState.getPacmanPosition())
+
+    #food distence from all position
+    foodDist = [-manhattanDistance(pos, current) for pos in foodPos]
+
+    #if no food distance = 0
+    if len(foodDist) == 0:
+        foodDist.append(0)
+
+    #return max or mean base on the probability
+    if random.random() > 0.8:
+        return max(foodDist) + currentGameState.getScore()
+    else:
+        return numpy.mean(foodDist) + currentGameState.getScore()
 # Abbreviation
 better = betterEvaluationFunction
 
