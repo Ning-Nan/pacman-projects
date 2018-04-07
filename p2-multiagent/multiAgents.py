@@ -386,7 +386,7 @@ def betterEvaluationFunction(currentGameState):
       DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    import numpy
+    #import numpy
     foodPos = currentGameState.getFood().asList()
 
     #current pacman position
@@ -400,10 +400,10 @@ def betterEvaluationFunction(currentGameState):
         foodDist.append(0)
 
     #return max or mean base on the probability
-    if random.random() > 0.8:
+    if random.random() > 0.7:
         return max(foodDist) + currentGameState.getScore()
     else:
-        return numpy.mean(foodDist) + currentGameState.getScore()
+        return min(foodDist) + currentGameState.getScore()
 # Abbreviation
 better = betterEvaluationFunction
 
