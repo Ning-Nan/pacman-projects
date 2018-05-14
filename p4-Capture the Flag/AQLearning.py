@@ -34,7 +34,14 @@ class ApproximateQLearningAgent(CaptureAgent):
  
   def registerInitialState(self, gameState):
     # Weight using dictionary
-    self.weigh = "Not Implemented!"
+    self.weigh = {}
+    self.weigh['Offensive'] = {}
+    self.weigh['Defensive'] = {}
+
+    # Set learning rate...etc
+    self.epsilon = 0.2 #exploration prob
+    self.alpha = 0.3 #learning rate
+    self.discountRate = 0.8
 
     # Agent start location
     self.start = gameState.getAgentPosition(self.index)
@@ -58,7 +65,16 @@ class ApproximateQLearningAgent(CaptureAgent):
 
     bestActions = [a for a, v in zip(actions, values) if v == maxValue]
 
-    return random.choice(bestActions)
+    action = random.choice(bestActions)
+    
+    # flip coins here
+    if len(actions) != 0:
+      prob = util.flipCoin(self.epsilon)
+
+      if prob:
+        action = random.choice(actions)
+
+    return action
 
 
   """
@@ -88,9 +104,9 @@ class ApproximateQLearningAgent(CaptureAgent):
     features = self.getFeatures(gameState, action)
     weights = self.getWeights(gameState, action)
 
-    # print "features: ",features
-    # print "weights: ",weights
-    # print "result: ", features*weights
+    #print "features: ",features
+    #print "weights: ",weights
+    #print "result: ", features*weights
 
     return features * weights
 
@@ -105,15 +121,16 @@ class ApproximateQLearningAgent(CaptureAgent):
   def final(self, state):
     print self.getScore(state)
     print "Not Implemented"
-    update()
+    #self.update(state)
+
+    self.update(state)
 
 
   """
   Method to update both weight. 
   """
-  def update():
+  def update(self,state):
     print "Not Implemented"
-
 
 
 
@@ -141,7 +158,28 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
   # Not Implemented
   def getWeights(self, gameState, action):
-    return {'successorScore': 100, 'distanceToFood': -1}
+    return self.weigh['Offensive']
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class DefensiveReflexAgent(ApproximateQLearningAgent):
 
@@ -174,4 +212,4 @@ class DefensiveReflexAgent(ApproximateQLearningAgent):
 
   # Not Implemented
   def getWeights(self, gameState, action):
-    return {'numInvaders': -1000, 'onDefense': 100, 'invaderDistance': -10, 'stop': -100, 'reverse': -2}
+    return self.weigh['Defensive']
