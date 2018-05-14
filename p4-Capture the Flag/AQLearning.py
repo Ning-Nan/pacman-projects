@@ -19,6 +19,13 @@ def createTeam(firstIndex, secondIndex, isRed,
 # Agents #
 ##########
 
+"""
+Some points:
+  
+  Reward given or lose only when win or lose
+
+
+"""
 class ApproximateQLearningAgent(CaptureAgent):
   """
       Class that will use ApproximateQLearning approch.
@@ -27,39 +34,36 @@ class ApproximateQLearningAgent(CaptureAgent):
  
   def registerInitialState(self, gameState):
     # Weight using dictionary
-    self.weigh = "pig"
+    self.weigh = "Not Implemented!"
+
+    # Agent start location
     self.start = gameState.getAgentPosition(self.index)
+
+
     CaptureAgent.registerInitialState(self, gameState)
 
   def chooseAction(self, gameState):
     """
     Picks among the actions with the highest Q(s,a).
     """
+
+    # Legal Actions that you can take.
     actions = gameState.getLegalActions(self.index)
 
-    # You can profile your evaluation time by uncommenting these lines
-    # start = time.time()
+
     values = [self.evaluate(gameState, a) for a in actions]
     # print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
 
     maxValue = max(values)
+
     bestActions = [a for a, v in zip(actions, values) if v == maxValue]
-
-    foodLeft = len(self.getFood(gameState).asList())
-
-    if foodLeft <= 2:
-      bestDist = 9999
-      for action in actions:
-        successor = self.getSuccessor(gameState, action)
-        pos2 = successor.getAgentPosition(self.index)
-        dist = self.getMazeDistance(self.start,pos2)
-        if dist < bestDist:
-          bestAction = action
-          bestDist = dist
-      return bestAction
 
     return random.choice(bestActions)
 
+
+  """
+  Game State after taking that action.
+  """
   def getSuccessor(self, gameState, action):
     """
     Finds the next successor which is a grid position (location tuple).
@@ -72,37 +76,56 @@ class ApproximateQLearningAgent(CaptureAgent):
     else:
       return successor
 
+
   def evaluate(self, gameState, action):
     """
     Computes a linear combination of features and feature weights
     """
+
+    # Q(s,a) = w1f1(s,a)+w2f2(s,a)+wnfn(s,a)...
+
+    # We get the Q value right from here.
     features = self.getFeatures(gameState, action)
     weights = self.getWeights(gameState, action)
+
+    # print "features: ",features
+    # print "weights: ",weights
+    # print "result: ", features*weights
+
     return features * weights
 
-  def getFeatures(self, gameState, action):
-    """
-    Returns a counter of features for the state
-    """
-    features = util.Counter()
-    successor = self.getSuccessor(gameState, action)
-    features['successorScore'] = self.getScore(successor)
-    return features
 
-  def getWeights(self, gameState, action):
-    """
-    Normally, weights do not depend on the gamestate.  They can be either
-    a counter or a dictionary.
-    """
-    return {'successorScore': 1.0}
+  """
+  This method will be called at the end of the game.
+  We should update our weight here.
+  Here we just use hard coding.
+  So print the updated weight, and take it from console to hard coding.
+  Note: called twice.
+  """
+  def final(self, state):
+    print self.getScore(state)
+    print "Not Implemented"
+    update()
+
+
+  """
+  Method to update both weight. 
+  """
+  def update():
+    print "Not Implemented"
+
+
+
+
+
+
+
 
 class OffensiveReflexAgent(ApproximateQLearningAgent):
-  """
-  A reflex agent that seeks food. This is an agent
-  we give you to get an idea of what an offensive agent might look like,
-  but it is by no means the best or only way to build an offensive agent.
-  """
+
+  # Not Implemented
   def getFeatures(self, gameState, action):
+
     features = util.Counter()
     successor = self.getSuccessor(gameState, action)
     foodList = self.getFood(successor).asList()    
@@ -116,17 +139,14 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
       features['distanceToFood'] = minDistance
     return features
 
+  # Not Implemented
   def getWeights(self, gameState, action):
     return {'successorScore': 100, 'distanceToFood': -1}
 
 class DefensiveReflexAgent(ApproximateQLearningAgent):
-  """
-  A reflex agent that keeps its side Pacman-free. Again,
-  this is to give you an idea of what a defensive agent
-  could be like.  It is not the best or only way to make
-  such an agent.
-  """
 
+
+  # Not Implemented
   def getFeatures(self, gameState, action):
     features = util.Counter()
     successor = self.getSuccessor(gameState, action)
@@ -152,5 +172,6 @@ class DefensiveReflexAgent(ApproximateQLearningAgent):
 
     return features
 
+  # Not Implemented
   def getWeights(self, gameState, action):
     return {'numInvaders': -1000, 'onDefense': 100, 'invaderDistance': -10, 'stop': -100, 'reverse': -2}
