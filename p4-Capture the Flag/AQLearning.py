@@ -24,6 +24,7 @@ Some points:
   
   Reward given every action. Weight updated every action
 
+  To Run: python capture.py -r AQLearning
 
 """
 class ApproximateQLearningAgent(CaptureAgent):
@@ -73,6 +74,8 @@ class ApproximateQLearningAgent(CaptureAgent):
 
       if prob:
         action = random.choice(actions)
+
+    self.update(gameState)
 
     return action
 
@@ -131,7 +134,11 @@ class ApproximateQLearningAgent(CaptureAgent):
 
 class OffensiveReflexAgent(ApproximateQLearningAgent):
 
-  # Not Implemented
+  # If we get closer to the nearest food, then the features should be higher (smaller distance, higher feature)
+  # If we get closer to the super food, then the features should be higher (smaller distance, higher feature)
+  # The more food we are carrying, the distance to return home will be more important (higher food, smaller distance to home, higer feature)
+  # If we get closer to the enermy, the features should be lower(smaller distance, smaller feature except they are scared or on our side)
+  # 
   def getFeatures(self, gameState, action):
 
     features = util.Counter()
@@ -152,11 +159,16 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
     return self.weight['Offensive']
 
 
- """
+  """
   Method to update weight. 
   """
+  # Score should be considerd as reward
+  # if turned to super state should be given reward
+  # if ate ernemy should be given reward
+  # if died shoud be punish
+  # if 
   def update(self,state):
-    print "Not Implemented"
+    print "Give reward and update weights here!!"
 
 
 
@@ -212,8 +224,8 @@ class DefensiveReflexAgent(ApproximateQLearningAgent):
     return self.weight['Defensive']
 
 
-   """
+  """
   Method to update weight. 
   """
   def update(self,state):
-    print "Not Implemented"
+    print "Give reward and update weights here!!"
