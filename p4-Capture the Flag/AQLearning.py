@@ -36,7 +36,7 @@ class ApproximateQLearningAgent(CaptureAgent):
   def registerInitialState(self, gameState):
     # Weight using dictionary
     self.weight = {}
-    self.weight['Offensive'] = {}
+    self.weight['Offensive'] = {'distanceToFood': 1.0}
     self.weight['Defensive'] = {}
 
     # Set learning rate...etc
@@ -77,6 +77,7 @@ class ApproximateQLearningAgent(CaptureAgent):
 
     self.update(gameState)
 
+    print self.__class__,action
     return action
 
 
@@ -107,10 +108,11 @@ class ApproximateQLearningAgent(CaptureAgent):
     features = self.getFeatures(gameState, action)
     weights = self.getWeights(gameState, action)
 
-    #print "features: ",features
-    #print "weights: ",weights
-    #print "result: ", features*weights
-
+    print self.__class__
+    print "features: ",features
+    print "weights: ",weights
+    print "result: ", features*weights
+    print "action", action
     return features * weights
 
 
@@ -134,25 +136,41 @@ class ApproximateQLearningAgent(CaptureAgent):
 
 class OffensiveReflexAgent(ApproximateQLearningAgent):
 
-  # If we get closer to the nearest food, then the features should be higher (smaller distance, higher feature)
-  # If we get closer to the super food, then the features should be higher (smaller distance, higher feature)
-  # The more food we are carrying, the distance to return home will be more important (higher food, smaller distance to home, higer feature)
-  # If we get closer to the enermy, the features should be lower(smaller distance, smaller feature except they are scared or on our side)
-  # 
+  # (NOT DONE)If we get closer to the nearest food, then the features should be higher (smaller distance, higher feature)
+  # (NOT DONE)If we get closer to the super food, then the features should be higher (smaller distance, higher feature)
+  # (NOT DONE)The more food we are carrying, the distance to return home will be more important (higher food, smaller distance to home, higer feature)
+  # (NOT DONE)If we get closer to the enermy, the features should be lower(smaller distance, smaller feature except they are scared or on our side)
+  # Please commit here what else should be done
   def getFeatures(self, gameState, action):
 
     features = util.Counter()
     successor = self.getSuccessor(gameState, action)
+    
+
+    # ------------------------Nearest Food Feature-----------------------
+    # Food that the agent can eat.
     foodList = self.getFood(successor).asList()    
-    features['successorScore'] = -len(foodList)#self.getScore(successor)
+    myPos = successor.getAgentState(self.index).getPosition()
+    minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
+    features['distanceToFood'] = 100.0/minDistance
+    # If this state eaten one food
+    if len(foodList) < len(self.getFood(gameState).asList()):
+      features['distanceToFood'] = 150.0
+    # ------------------------End--------------------------------------
 
-    # Compute distance to the nearest food
 
-    if len(foodList) > 0: # This should always be True,  but better safe than sorry
-      myPos = successor.getAgentState(self.index).getPosition()
-      minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
-      features['distanceToFood'] = minDistance
+
+
+
+
+
+
+
     return features
+
+
+
+
 
   # Not Implemented
   def getWeights(self, gameState, action):
@@ -160,15 +178,20 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
 
   """
-  Method to update weight. 
+  Method to update weight and give rewards. 
   """
-  # Score should be considerd as reward
-  # if turned to super state should be given reward
-  # if ate ernemy should be given reward
-  # if died shoud be punish
-  # if 
+  # (NOT DONE)Score should be considerd as reward
+  # (NOT DONE)if turned to super state should be given reward
+  # (NOT DONE)if ate ernemy should be given reward
+  # (NOT DONE)if died shoud be punish
+  # Please commit here what else should be done
   def update(self,state):
     print "Give reward and update weights here!!"
+
+
+
+
+
 
 
 
