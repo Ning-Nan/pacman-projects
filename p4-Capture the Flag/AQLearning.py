@@ -36,7 +36,7 @@ class ApproximateQLearningAgent(CaptureAgent):
   def registerInitialState(self, gameState):
     # Weight using dictionary
     self.weight = {}
-    self.weight['Offensive'] = {'distanceToFood': 1.0}
+    self.weight['Offensive'] = {'distanceToFood': 1.0, 'distanceToCapsule':1.1}
     self.weight['Defensive'] = {}
 
     # Set learning rate...etc
@@ -54,6 +54,9 @@ class ApproximateQLearningAgent(CaptureAgent):
     """
     Picks among the actions with the highest Q(s,a).
     """
+    # debug purpose
+    if self.__class__ == OffensiveReflexAgent:
+      print "Offensive Data Begin---------------------------"
 
     # Legal Actions that you can take.
     actions = gameState.getLegalActions(self.index)
@@ -77,7 +80,10 @@ class ApproximateQLearningAgent(CaptureAgent):
 
     self.update(gameState)
 
-    print self.__class__,action
+    # debug purpose
+    if self.__class__ == OffensiveReflexAgent:
+      print "Action take: ", action
+      print "END-------------------------------"
     return action
 
 
@@ -108,11 +114,13 @@ class ApproximateQLearningAgent(CaptureAgent):
     features = self.getFeatures(gameState, action)
     weights = self.getWeights(gameState, action)
 
-    print self.__class__
-    print "features: ",features
-    print "weights: ",weights
-    print "result: ", features*weights
-    print "action", action
+    # debug purpose
+    if self.__class__ == OffensiveReflexAgent:
+      print "features: ",features
+      print "weights: ",weights
+      print "result: ", features*weights
+      print "action: ", action
+
     return features * weights
 
 
@@ -136,7 +144,7 @@ class ApproximateQLearningAgent(CaptureAgent):
 
 class OffensiveReflexAgent(ApproximateQLearningAgent):
 
-  # (NOT DONE)If we get closer to the nearest food, then the features should be higher (smaller distance, higher feature)
+  # (DONE&NEEDS DEBUG)If we get closer to the nearest food, then the features should be higher (smaller distance, higher feature)
   # (NOT DONE)If we get closer to the super food, then the features should be higher (smaller distance, higher feature)
   # (NOT DONE)The more food we are carrying, the distance to return home will be more important (higher food, smaller distance to home, higer feature)
   # (NOT DONE)If we get closer to the enermy, the features should be lower(smaller distance, smaller feature except they are scared or on our side)
@@ -145,12 +153,11 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
     features = util.Counter()
     successor = self.getSuccessor(gameState, action)
-    
+    myPos = successor.getAgentState(self.index).getPosition()
 
     # ------------------------Nearest Food Feature-----------------------
     # Food that the agent can eat.
     foodList = self.getFood(successor).asList()    
-    myPos = successor.getAgentState(self.index).getPosition()
     minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
     features['distanceToFood'] = 100.0/minDistance
     # If this state eaten one food
@@ -160,7 +167,21 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
 
 
-
+    # ------------------------Super Food Feature(NOT DONE)-----------------------
+    # Get capsule location after taking this action
+    nowCapsule = self.getCapsules(successor)
+    # Capsule is already eaten
+    if self.getCapsules(gameState) == []:
+      features['distanceToCapsule'] = 0.0
+    else:
+      # Capsule will be eaten in this step
+      if nowCapsule == []:
+        features['distanceToCapsule'] = 250.0
+      # Normal case
+      else:
+        capsuleDistance = self.getMazeDistance(myPos,nowCapsule[0])
+        features['distanceToCapsule'] = 150.0/capsuleDistance
+    # ------------------------End--------------------------------------
 
 
 
@@ -184,9 +205,10 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
   # (NOT DONE)if turned to super state should be given reward
   # (NOT DONE)if ate ernemy should be given reward
   # (NOT DONE)if died shoud be punish
+  # (NOT DONE)if stop then punish
   # Please commit here what else should be done
   def update(self,state):
-    print "Give reward and update weights here!!"
+    print ""
 
 
 
@@ -251,4 +273,4 @@ class DefensiveReflexAgent(ApproximateQLearningAgent):
   Method to update weight. 
   """
   def update(self,state):
-    print "Give reward and update weights here!!"
+    print ""
