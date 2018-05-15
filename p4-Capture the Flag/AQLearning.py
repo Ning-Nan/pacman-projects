@@ -22,7 +22,7 @@ def createTeam(firstIndex, secondIndex, isRed,
 """
 Some points:
   
-  Reward given or lose only when win or lose
+  Reward given every action. Weight updated every action
 
 
 """
@@ -34,9 +34,9 @@ class ApproximateQLearningAgent(CaptureAgent):
  
   def registerInitialState(self, gameState):
     # Weight using dictionary
-    self.weigh = {}
-    self.weigh['Offensive'] = {}
-    self.weigh['Defensive'] = {}
+    self.weight = {}
+    self.weight['Offensive'] = {}
+    self.weight['Defensive'] = {}
 
     # Set learning rate...etc
     self.epsilon = 0.2 #exploration prob
@@ -113,25 +113,16 @@ class ApproximateQLearningAgent(CaptureAgent):
 
   """
   This method will be called at the end of the game.
-  We should update our weight here.
+  We should print final weight here.
   Here we just use hard coding.
   So print the updated weight, and take it from console to hard coding.
-  Note: called twice.
   """
   def final(self, state):
     print self.getScore(state)
     print "Not Implemented"
-    #self.update(state)
-
-    self.update(state)
 
 
-  """
-  Method to update both weight. 
-  """
-  def update(self,state):
-    print "Not Implemented"
-
+ 
 
 
 
@@ -158,8 +149,14 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
   # Not Implemented
   def getWeights(self, gameState, action):
-    return self.weigh['Offensive']
+    return self.weight['Offensive']
 
+
+ """
+  Method to update weight. 
+  """
+  def update(self,state):
+    print "Not Implemented"
 
 
 
@@ -212,4 +209,11 @@ class DefensiveReflexAgent(ApproximateQLearningAgent):
 
   # Not Implemented
   def getWeights(self, gameState, action):
-    return self.weigh['Defensive']
+    return self.weight['Defensive']
+
+
+   """
+  Method to update weight. 
+  """
+  def update(self,state):
+    print "Not Implemented"
