@@ -36,11 +36,12 @@ class ApproximateQLearningAgent(CaptureAgent):
   def registerInitialState(self, gameState):
     # Weight using dictionary
     self.weight = {}
-    self.weight['Offensive'] = {'distanceToFood': 1.0, 'distanceToCapsule':1.1,'DistanceToGhost':2.0}
+    self.weight['Offensive'] = {'distanceToFood': 1.0, 'distanceToCapsule':1.1,'DistanceToGhost':2.0,
+                                'returnHome': 2.0}
     self.weight['Defensive'] = {}
 
     # Set learning rate...etc
-    self.epsilon = 0.2 #exploration prob
+    self.epsilon = 0 #exploration prob
     self.alpha = 0.3 #learning rate
     self.discountRate = 0.8
 
@@ -61,6 +62,7 @@ class ApproximateQLearningAgent(CaptureAgent):
     # Legal Actions that you can take.
     actions = gameState.getLegalActions(self.index)
 
+    actions.remove('Stop')
 
     values = [self.evaluate(gameState, a) for a in actions]
     # print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
@@ -146,8 +148,8 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
   # (DONE&NEEDS DEBUG)If we get closer to the nearest food, then the features should be higher (smaller distance, higher feature)
   # (DONE&NEEDS DEBUG)If we get closer to the super food, then the features should be higher (smaller distance, higher feature)
-  # (NOT DONE)The more food we are carrying, the distance to return home will be more important (higher food, smaller distance to home, higer feature)
-  # (NOT DONE)If we get closer to the enermy, the features should be lower(smaller distance, smaller feature except they are scared or on our side)
+  # (DONE&NEEDS DEBUG)The more food we are carrying, the distance to return home will be more important (higher food, smaller distance to home, higer feature)
+  # (HALF DONE)If we get closer to the enermy, the features should be lower(smaller distance, smaller feature except they are scared or on our side)
   # Please commit here what else should be done
   def getFeatures(self, gameState, action):
 
@@ -155,7 +157,8 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
     successor = self.getSuccessor(gameState, action)
     myPos = successor.getAgentState(self.index).getPosition()
     currPos = gameState.getAgentPosition(self.index)
-
+    myState = successor.getAgentState(self.index)
+    CurrState = gameState.getAgentState(self.index)
 
     # ------------------------Nearest Food Feature-----------------------
     # Food that the agent can eat.
@@ -212,7 +215,11 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
         for location in enermies:
           enemiesDistance.append(self.getMazeDistance(myPos,location))
 
-        features['DistanceToGhost'] = min(enemiesDistance) *  20
+        features['DistanceToGhost'] = min(enemiesDistance) *  15
+
+        for index in enermiesIndex:
+          if not gameState.getAgentState(index).scaredTimer == 0:
+            features['DistanceToGhost'] = 0
 
       # If I am not pacman should consider the ghoust one step away:
       else:
@@ -229,13 +236,29 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
 
 
-
-    nosiyDistance =  gameState.getAgentDistances()
-    # Has enermy within 5 square
-
+    # nosiyDistance =  gameState.getAgentDistances()
     # Does not have enermy within 5 square
+    # Not Implemented
 
     # ------------------------End--------------------------------------
+
+
+
+
+    # ------------------------Return Home Feature-----------------------
+    # Get Food Carrying
+    foodCarrying = CurrState.numCarrying
+    distanceToHome = self.getMazeDistance(myPos, self.start)
+    if not distanceToHome == 0:
+      features['returnHome'] = foodCarrying * 200.0/self.getMazeDistance(myPos, self.start)
+    else:
+      features['returnHome'] = 0
+
+    # This feature should be home distance * food carrying 
+    # (more you are carrying, you will more need to go home)
+
+    # ------------------------End--------------------------------------
+
 
 
 
