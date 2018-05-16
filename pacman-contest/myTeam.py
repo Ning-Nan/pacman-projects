@@ -204,8 +204,8 @@ class OffensiveAgent(AlphaBetaAgent):
 				ghostDists = gameState.getAgentDistances()
 				features['distanceToGhost'] += ghostDists[ghost]
 
-		# Agent take fodd util has 6 foods
-		if gameState.getAgentState(self.index).numCarrying < 6:
+		# Agent take fodd util has 4 foods
+		if gameState.getAgentState(self.index).numCarrying < 4:
 
 			myPos = gameState.getAgentState(self.index).getPosition()
 
