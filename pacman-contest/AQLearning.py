@@ -36,7 +36,7 @@ class ApproximateQLearningAgent(CaptureAgent):
   def registerInitialState(self, gameState):
     # Weight using dictionary
     self.weight = {}
-    self.weight['Offensive'] = {'distanceToFood': 1.0, 'distanceToCapsule':1.1}
+    self.weight['Offensive'] = {'distanceToFood': 1.0, 'distanceToCapsule':1.1,'DistanceToGhost':2.0}
     self.weight['Defensive'] = {}
 
     # Set learning rate...etc
@@ -145,7 +145,7 @@ class ApproximateQLearningAgent(CaptureAgent):
 class OffensiveReflexAgent(ApproximateQLearningAgent):
 
   # (DONE&NEEDS DEBUG)If we get closer to the nearest food, then the features should be higher (smaller distance, higher feature)
-  # (NOT DONE)If we get closer to the super food, then the features should be higher (smaller distance, higher feature)
+  # (DONE&NEEDS DEBUG)If we get closer to the super food, then the features should be higher (smaller distance, higher feature)
   # (NOT DONE)The more food we are carrying, the distance to return home will be more important (higher food, smaller distance to home, higer feature)
   # (NOT DONE)If we get closer to the enermy, the features should be lower(smaller distance, smaller feature except they are scared or on our side)
   # Please commit here what else should be done
@@ -154,6 +154,8 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
     features = util.Counter()
     successor = self.getSuccessor(gameState, action)
     myPos = successor.getAgentState(self.index).getPosition()
+    currPos = gameState.getAgentPosition(self.index)
+
 
     # ------------------------Nearest Food Feature-----------------------
     # Food that the agent can eat.
@@ -167,7 +169,7 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
 
 
-    # ------------------------Super Food Feature(NOT DONE)-----------------------
+    # ------------------------Super Food Feature-----------------------
     # Get capsule location after taking this action
     nowCapsule = self.getCapsules(successor)
     # Capsule is already eaten
@@ -184,6 +186,56 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
     # ------------------------End--------------------------------------
 
 
+
+    # ------------------------Enermy Distance Feature-----------------------
+    # Get Enermy Index
+    enermiesIndex = self.getOpponents(gameState)
+
+    # Get Enermy Position which in 5 square of agent
+    enermies = []
+    for index in enermiesIndex:
+      if gameState.getAgentPosition(index)!= None:
+        enermies.append(gameState.getAgentPosition(index))
+
+    # Remove enermies index as pacman
+    enermyDefendingIndex = enermiesIndex[:]
+    for index in enermiesIndex:
+      if gameState.getAgentState(index).isPacman:
+        enermyDefendingIndex.remove(index)
+
+    # Has defending enermy within 5 square
+    if enermies !=[]:
+      
+      # If I am pacman need to run away
+      if successor.getAgentState(self.index).isPacman:
+        enemiesDistance = []
+        for location in enermies:
+          enemiesDistance.append(self.getMazeDistance(myPos,location))
+
+        features['DistanceToGhost'] = min(enemiesDistance) *  20
+
+      # If I am not pacman should consider the ghoust one step away:
+      else:
+        # if last state I was pacman, and the ghost is one-step away, and 
+        # the location after taking this action is the ghost location, I will arrive the ghost locaiton
+        # I will be eaten. DONT DO THIS
+        if not gameState.getAgentState(self.index).isPacman:
+          enemiesDistance = []
+          for location in enermies:
+            enemiesDistance.append(self.getMazeDistance(currPos,location))
+
+          if min(enemiesDistance) == 1 and myPos == self.start:
+            features['DistanceToGhost'] = 999
+
+
+
+
+    nosiyDistance =  gameState.getAgentDistances()
+    # Has enermy within 5 square
+
+    # Does not have enermy within 5 square
+
+    # ------------------------End--------------------------------------
 
 
 
