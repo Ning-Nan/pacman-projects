@@ -5,6 +5,7 @@ import random, time, util, sys
 from game import Directions
 import game
 from util import nearestPoint
+import os
 
 #################
 # Team creation #
@@ -20,11 +21,7 @@ def createTeam(firstIndex, secondIndex, isRed,
 ##########
 
 """
-Some points:
-  
-  Reward given every action. Weight updated every action
-
-  To Run: python capture.py -r AQLearning
+To Run: python capture.py -r AQLearning
 
 """
 class ApproximateQLearningAgent(CaptureAgent):
@@ -36,13 +33,17 @@ class ApproximateQLearningAgent(CaptureAgent):
   def registerInitialState(self, gameState):
     # Weight using dictionary
     self.weight = {}
+    self.weight['Defensive']= {}
+
+    
+    """
     self.weight['Offensive'] = {'distanceToFood': 1.0, 'distanceToCapsule':1.1,'DistanceToGhost':2.0,
                                 'returnHome': 2.0}
-    self.weight['Defensive'] = {}
+    """
 
     # Set learning rate...etc
-    self.epsilon = 0 #exploration prob
-    self.alpha = 0.3 #learning rate
+    self.epsilon = 0.3 #exploration prob
+    self.alpha = 0.5 #learning rate
     self.discountRate = 0.8
 
     # Agent start location
@@ -54,12 +55,10 @@ class ApproximateQLearningAgent(CaptureAgent):
 
 
   def chooseAction(self, gameState):
+    self.readFile()
     """
     Picks among the actions with the highest Q(s,a).
     """
-    # debug purpose
-    if self.__class__ == OffensiveReflexAgent:
-      print "Offensive Data Begin---------------------------"
 
     # Legal Actions that you can take.
     actions = gameState.getLegalActions(self.index)
@@ -67,7 +66,6 @@ class ApproximateQLearningAgent(CaptureAgent):
     actions.remove('Stop')
 
     values = [self.evaluate(gameState, a) for a in actions]
-    # print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
 
     maxValue = max(values)
 
@@ -84,16 +82,10 @@ class ApproximateQLearningAgent(CaptureAgent):
 
     self.update(gameState, action)
 
-    # debug purpose
-    if self.__class__ == OffensiveReflexAgent:
-      print "Action take: ", action
-      print "END-------------------------------"
     return action
 
 
-  """
-  Game State after taking that action.
-  """
+
   def getSuccessor(self, gameState, action):
     """
     Finds the next successor which is a grid position (location tuple).
@@ -112,18 +104,11 @@ class ApproximateQLearningAgent(CaptureAgent):
     Computes a linear combination of features and feature weights
     """
 
-    # Q(s,a) = w1f1(s,a)+w2f2(s,a)+wnfn(s,a)...
 
     # We get the Q value right from here.
     features = self.getFeatures(gameState, action)
     weights = self.getWeights(gameState, action)
 
-    # debug purpose
-    if self.__class__ == OffensiveReflexAgent:
-      print "features: ",features
-      print "weights: ",weights
-      print "result: ", features*weights
-      print "action: ", action
 
     return features * weights
 
@@ -138,8 +123,38 @@ class ApproximateQLearningAgent(CaptureAgent):
     print self.getScore(state)
     print "Not Implemented"
 
+  def readFile(self):
+    if not os.path.exists("weight.txt"):
+      fo = open("weight.txt", "w")
+      fo.write("distanceToFood:0.0;distanceToCapsule:0.0;distanceToGhost:0.0;returnHome:0.0");
+      fo.close()
+      self.weight['Offensive'] = {'distanceToFood': 0.0, 'distanceToCapsule':0.0,'distanceToGhost':0.0,
+                                'returnHome': 0.0}
 
- 
+    else:
+      fo = open("weight.txt","r")
+      string = fo.readline()
+      fo.close()
+      self.weight['Offensive'] = {}
+      print string
+      groups = string.split(';')
+      for pair in groups:
+        temp = pair.split(':')
+        self.weight['Offensive'][temp[0]] = float(temp[1])
+
+    """self.weight['Offensive'] = {'distanceToFood': 1.0, 'distanceToCapsule':1.1,'DistanceToGhost':2.0,
+                                            'returnHome': 2.0}"""
+
+
+  def writeFile(self,string):
+    
+    fo = open("history.txt","a")
+    fo.write(str(string))
+    fo.close()
+            
+    fo = open("weight.txt","w")
+    fo.write(str(string))
+    fo.close()
 
 
 
@@ -220,11 +235,11 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
       for location in enermies:
         enemiesDistance.append(self.getMazeDistance(myPos,location))
 
-      features['DistanceToGhost'] = min(enemiesDistance) 
+      features['distanceToGhost'] = min(enemiesDistance) 
       self.minGhost = min(enemiesDistance) * 3.0
 
       if myPos == self.start :
-        features['DistanceToGhost'] = -200
+        features['distanceToGhost'] = -200
 
         
 
@@ -232,11 +247,11 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
       newActions.remove('Stop')
 
       if len(newActions) == 1 and min(enemiesDistance)<= 3:
-        features['DistanceToGhost'] -= 200
+        features['distanceToGhost'] -= 200
 
       for index in enermiesIndex:
         if not gameState.getAgentState(index).scaredTimer == 0:
-          features['DistanceToGhost'] = 0
+          features['distanceToGhost'] = 0
       # If I am not pacman should consider the ghoust one step away:
       
 
@@ -245,7 +260,6 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
     # Not Implemented
 
     # ------------------------End--------------------------------------
-    print myPos
 
 
 
@@ -330,20 +344,25 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
     maxValue = max(values)
     
+    difference = reward + self.discountRate * maxValue - qValve
+
+    weights = self.weight['Offensive']
+
+    features = self.getFeatures(gameState, action)
+
     
 
+    weights['distanceToFood'] = weights['distanceToFood'] + self.alpha * difference * features['distanceToFood']
+    weights['distanceToCapsule'] = weights['distanceToCapsule'] + self.alpha * difference * features['distanceToCapsule']
+    weights['distanceToGhost'] = weights['distanceToGhost'] + self.alpha * difference * features['distanceToGhost']
+    weights['returnHome'] = weights['returnHome'] + self.alpha * difference * features['returnHome']
+    print weights
+    string = "distanceToFood:"+str(weights['distanceToFood'])+";"
+    string+="distanceToCapsule:"+str(weights['distanceToCapsule'])+";"
+    string+="distanceToGhost:"+str(weights['distanceToGhost'])+";"
+    string+="returnHome:"+str(weights['returnHome'])+"\n"
 
-
-
-
-
-
-
-
-
-
-
-
+    self.writeFile(string)
 
 
 
