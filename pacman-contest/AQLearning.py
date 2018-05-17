@@ -48,8 +48,10 @@ class ApproximateQLearningAgent(CaptureAgent):
     # Agent start location
     self.start = gameState.getAgentPosition(self.index)
 
+    self.minGhost = 0
 
     CaptureAgent.registerInitialState(self, gameState)
+
 
   def chooseAction(self, gameState):
     """
@@ -80,7 +82,7 @@ class ApproximateQLearningAgent(CaptureAgent):
       if prob:
         action = random.choice(actions)
 
-    self.update(gameState)
+    self.update(gameState, action)
 
     # debug purpose
     if self.__class__ == OffensiveReflexAgent:
@@ -180,12 +182,14 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
       features['distanceToCapsule'] = 0.0
     else:
       # Capsule will be eaten in this step
-      if nowCapsule == []:
+      if len(nowCapsule) < len(self.getCapsules(gameState)):
         features['distanceToCapsule'] = 250.0
       # Normal case
       else:
-        capsuleDistance = self.getMazeDistance(myPos,nowCapsule[0])
-        features['distanceToCapsule'] = 150.0/capsuleDistance
+        capsuleDistance = []
+        for location in nowCapsule:
+          capsuleDistance.append(self.getMazeDistance(myPos,nowCapsule[0]))
+        features['distanceToCapsule'] = 150.0/min(capsuleDistance)
     # ------------------------End--------------------------------------
 
 
@@ -216,32 +220,31 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
           enemiesDistance.append(self.getMazeDistance(myPos,location))
 
         features['DistanceToGhost'] = min(enemiesDistance) *  15
+        self.minGhost = min(enemiesDistance)
+
+        if self.minGhost == 1:
+          features['DistanceToGhost'] = -50
 
         for index in enermiesIndex:
           if not gameState.getAgentState(index).scaredTimer == 0:
             features['DistanceToGhost'] = 0
 
+        newActions = successor.getLegalActions(self.index)
+        newActions.remove('Stop')
+        if len(newActions) == 1 and min(enemiesDistance)<= 2:
+          features['DistanceToGhost'] -= 60
+
+         
+
       # If I am not pacman should consider the ghoust one step away:
-      else:
-        # if last state I was pacman, and the ghost is one-step away, and 
-        # the location after taking this action is the ghost location, I will arrive the ghost locaiton
-        # I will be eaten. DONT DO THIS
-        if not gameState.getAgentState(self.index).isPacman:
-          enemiesDistance = []
-          for location in enermies:
-            enemiesDistance.append(self.getMazeDistance(currPos,location))
-
-          if min(enemiesDistance) == 1 and myPos == self.start:
-            features['DistanceToGhost'] = 999
-
-
+      
 
     # nosiyDistance =  gameState.getAgentDistances()
     # Does not have enermy within 5 square
     # Not Implemented
 
     # ------------------------End--------------------------------------
-
+    print myPos
 
 
 
@@ -258,7 +261,6 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
     # (more you are carrying, you will more need to go home)
 
     # ------------------------End--------------------------------------
-
 
 
 
@@ -282,8 +284,17 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
   # (NOT DONE)if died shoud be punish
   # (NOT DONE)if stop then punish
   # Please commit here what else should be done
-  def update(self,state):
-    print ""
+  def update(self, gameState, action):
+    successor = self.getSuccessor(gameState, action)
+    myPos = successor.getAgentState(self.index).getPosition()
+    currPos = gameState.getAgentPosition(self.index)
+
+    # Pacman will be eaten
+    print self.minGhost
+      
+
+    
+      
 
 
 
@@ -347,5 +358,5 @@ class DefensiveReflexAgent(ApproximateQLearningAgent):
   """
   Method to update weight. 
   """
-  def update(self,state):
+  def update(self, gameState, action):
     print ""
