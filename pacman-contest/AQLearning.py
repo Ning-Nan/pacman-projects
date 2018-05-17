@@ -166,10 +166,10 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
     # Food that the agent can eat.
     foodList = self.getFood(successor).asList()    
     minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
-    features['distanceToFood'] = 100.0/minDistance
+    features['distanceToFood'] = 45.0/minDistance
     # If this state eaten one food
     if len(foodList) < len(self.getFood(gameState).asList()):
-      features['distanceToFood'] = 150.0
+      features['distanceToFood'] = 50.0
     # ------------------------End--------------------------------------
 
 
@@ -198,44 +198,45 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
     # Get Enermy Index
     enermiesIndex = self.getOpponents(gameState)
 
-    # Get Enermy Position which in 5 square of agent
-    enermies = []
-    for index in enermiesIndex:
-      if gameState.getAgentPosition(index)!= None:
-        enermies.append(gameState.getAgentPosition(index))
-
+    
     # Remove enermies index as pacman
     enermyDefendingIndex = enermiesIndex[:]
     for index in enermiesIndex:
       if gameState.getAgentState(index).isPacman:
         enermyDefendingIndex.remove(index)
 
+    # Get Enermy Position which in 5 square of agent
+    enermies = []
+    for index in enermyDefendingIndex:
+      if gameState.getAgentPosition(index)!= None:
+        enermies.append(gameState.getAgentPosition(index))
+
     # Has defending enermy within 5 square
     if enermies !=[]:
       
       # If I am pacman need to run away
-      if successor.getAgentState(self.index).isPacman:
-        enemiesDistance = []
-        for location in enermies:
-          enemiesDistance.append(self.getMazeDistance(myPos,location))
+      
+      enemiesDistance = []
+      for location in enermies:
+        enemiesDistance.append(self.getMazeDistance(myPos,location))
 
-        features['DistanceToGhost'] = min(enemiesDistance) *  15
-        self.minGhost = min(enemiesDistance)
+      features['DistanceToGhost'] = min(enemiesDistance) 
+      self.minGhost = min(enemiesDistance) * 3.0
 
-        if self.minGhost == 1:
-          features['DistanceToGhost'] = -50
+      if myPos == self.start :
+        features['DistanceToGhost'] = -200
 
-        for index in enermiesIndex:
-          if not gameState.getAgentState(index).scaredTimer == 0:
-            features['DistanceToGhost'] = 0
+        
 
-        newActions = successor.getLegalActions(self.index)
-        newActions.remove('Stop')
-        if len(newActions) == 1 and min(enemiesDistance)<= 2:
-          features['DistanceToGhost'] -= 60
+      newActions = successor.getLegalActions(self.index)
+      newActions.remove('Stop')
 
-         
+      if len(newActions) == 1 and min(enemiesDistance)<= 3:
+        features['DistanceToGhost'] -= 200
 
+      for index in enermiesIndex:
+        if not gameState.getAgentState(index).scaredTimer == 0:
+          features['DistanceToGhost'] = 0
       # If I am not pacman should consider the ghoust one step away:
       
 
@@ -253,7 +254,7 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
     foodCarrying = CurrState.numCarrying
     distanceToHome = self.getMazeDistance(myPos, self.start)
     if not distanceToHome == 0:
-      features['returnHome'] = foodCarrying * 200.0/self.getMazeDistance(myPos, self.start)
+      features['returnHome'] = foodCarrying * 300.0/self.getMazeDistance(myPos, self.start)
     else:
       features['returnHome'] = 0
 
@@ -286,18 +287,50 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
   # Please commit here what else should be done
   def update(self, gameState, action):
     successor = self.getSuccessor(gameState, action)
+    myState = successor.getAgentState(self.index)
     myPos = successor.getAgentState(self.index).getPosition()
     currPos = gameState.getAgentPosition(self.index)
+    reward = 0
 
-    # Pacman will be eaten
-    print self.minGhost
-      
 
+    # Pacman will be eaten, Punish! That is very serious!
+    if myPos == self.start:
+      reward = reward - 200
+
+
+    # Eat food give one small reward
+    foodList = self.getFood(successor).asList()
+    if len(foodList) < len(self.getFood(gameState).asList()):
+      reward = reward + 20
+
+    # Eat super food give one larger reward
+    # Get capsule location after taking this action
+    nowCapsule = self.getCapsules(successor)
+    # Capsule is already eaten
+    if not self.getCapsules(gameState) == []:
+      # Capsule will be eaten in this step
+      if len(nowCapsule) < len(self.getCapsules(gameState)):
+        reward = reward + 200
+
+
+    # score added give big reward
+    scores  = successor.getScore() - gameState.getScore()
+
+    if scores > 0 :
+      reward = reward + scores * 100
+
+    qValve = self.evaluate(gameState, action)
+
+    actions = successor.getLegalActions(self.index)
+
+    actions.remove('Stop')
+
+    values = [self.evaluate(successor, a) for a in actions]
+    # print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
+
+    maxValue = max(values)
     
-      
-
-
-
+    
 
 
 
