@@ -12,7 +12,7 @@ import os
 #################
 
 def createTeam(firstIndex, secondIndex, isRed,
-               first = 'OffensiveReflexAgent', second = 'DefensiveReflexAgent'):
+               first = 'DefensiveReflexAgent', second = 'DefensiveReflexAgent'):
 
   return [eval(first)(firstIndex), eval(second)(secondIndex)]
 
@@ -43,7 +43,7 @@ class ApproximateQLearningAgent(CaptureAgent):
 
     # Set learning rate...etc
     self.epsilon = 0.4 #exploration prob
-    self.alpha = 0.4 #learning rate
+    self.alpha = 0.5 #learning rate
     self.discountRate = 0.8
 
     # Agent start location
@@ -180,10 +180,10 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
     # Food that the agent can eat.
     foodList = self.getFood(successor).asList()    
     minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
-    features['distanceToFood'] = 1.0/minDistance
+    features['distanceToFood'] = 4.5/minDistance
     # If this state eaten one food
     if len(foodList) < len(self.getFood(gameState).asList()):
-      features['distanceToFood'] = 1.1
+      features['distanceToFood'] = 5.0
     # ------------------------End--------------------------------------
 
 
@@ -246,7 +246,7 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
       newActions.remove('Stop')
 
       if len(newActions) == 1 and min(enemiesDistance)<= 3:
-        features['distanceToGhost'] -= -1.0
+        features['distanceToGhost'] -= 1.0
 
       for index in enermiesIndex:
         if not gameState.getAgentState(index).scaredTimer == 0:
