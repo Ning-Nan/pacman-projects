@@ -42,9 +42,9 @@ class ApproximateQLearningAgent(CaptureAgent):
     """
 
     # Set learning rate...etc
-    self.epsilon = 0.4 #exploration prob
-    self.alpha = 0.4 #learning rate
-    self.discountRate = 0.8
+    self.epsilon = 0.3 #exploration prob
+    self.alpha = 0.3 #learning rate
+    self.discountRate = 0.95
 
     # Agent start location
     self.start = gameState.getAgentPosition(self.index)
@@ -178,12 +178,13 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
     # ------------------------Nearest Food Feature-----------------------
     # Food that the agent can eat.
-    foodList = self.getFood(successor).asList()    
-    minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
-    features['distanceToFood'] = 1.0/minDistance
-    # If this state eaten one food
-    if len(foodList) < len(self.getFood(gameState).asList()):
-      features['distanceToFood'] = 1.1
+    foodList = self.getFood(successor).asList()
+    if not len(foodList) == 0:   
+      minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
+      features['distanceToFood'] = 1.0/minDistance
+      # If this state eaten one food
+      if len(foodList) < len(self.getFood(gameState).asList()):
+        features['distanceToFood'] = 1.1
     # ------------------------End--------------------------------------
 
 
@@ -203,7 +204,8 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
         capsuleDistance = []
         for location in nowCapsule:
           capsuleDistance.append(self.getMazeDistance(myPos,location))
-        features['distanceToCapsule'] = 1/min(capsuleDistance)
+        features['distanceToCapsule'] = 1.0/min(capsuleDistance)
+
     # ------------------------End--------------------------------------
 
 
@@ -234,11 +236,11 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
       for location in enermies:
         enemiesDistance.append(self.getMazeDistance(myPos,location))
 
-      features['distanceToGhost'] = min(enemiesDistance) 
-      self.minGhost = min(enemiesDistance) * 0.3
+      features['distanceToGhost'] = min(enemiesDistance) /10.0
+      self.minGhost = min(enemiesDistance)
 
       if myPos == self.start :
-        features['distanceToGhost'] = -1.0
+        features['distanceToGhost'] = 0.0
 
         
 
@@ -246,11 +248,11 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
       newActions.remove('Stop')
 
       if len(newActions) == 1 and min(enemiesDistance)<= 3:
-        features['distanceToGhost'] -= -1.0
+        features['distanceToGhost'] = 0.0
 
       for index in enermiesIndex:
-        if not gameState.getAgentState(index).scaredTimer == 0:
-          features['distanceToGhost'] = 0.0
+        if not successor.getAgentState(index).scaredTimer == 0:
+          features['distanceToGhost'] = 6.0
       # If I am not pacman should consider the ghoust one step away:
       
 
@@ -264,10 +266,10 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
     # ------------------------Return Home Feature-----------------------
     # Get Food Carrying
-    foodCarrying = CurrState.numCarrying
+    foodCarrying = myState.numCarrying
     distanceToHome = self.getMazeDistance(myPos, self.start)
     if not distanceToHome == 0:
-      features['returnHome'] = foodCarrying * 1.0/self.getMazeDistance(myPos, self.start)
+      features['returnHome'] = foodCarrying * 10.0/self.getMazeDistance(myPos, self.start)
     else:
       features['returnHome'] = 0
 
@@ -307,15 +309,55 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
     reward = 0.0
 
 
+    # Get Enermy Index
+    enermiesIndex = self.getOpponents(gameState)
+    enemiesDistance = []
+    minEnemiesDistance = 999
+    # Remove enermies index as pacman
+    enermyDefendingIndex = enermiesIndex[:]
+    for index in enermiesIndex:
+      if gameState.getAgentState(index).isPacman:
+        enermyDefendingIndex.remove(index)
+
+    # Get Enermy Position which in 5 square of agent
+    enermies = []
+    for index in enermyDefendingIndex:
+      if gameState.getAgentPosition(index)!= None:
+        enermies.append(gameState.getAgentPosition(index))
+
+    # Has defending enermy within 5 square
+    if enermies !=[]:
+      for location in enermies:
+        enemiesDistance.append(self.getMazeDistance(myPos,location))
+      minEnemiesDistance = min(enemiesDistance)
+
     # Pacman will be eaten, Punish! That is very serious!
     if myPos == self.start and currState.isPacman:
       reward = reward - 20
-
+    elif myState.isPacman and minEnemiesDistance == 1:
+      reward = reward - 20
 
     # Eat food give one small reward
-    foodList = self.getFood(successor).asList()
-    if len(foodList) < len(self.getFood(gameState).asList()):
-      reward = reward + 2
+    if myState.numCarrying == currState.numCarrying + 1:
+      reward = reward + 5
+
+    
+
+
+
+    else:
+      # Closer to food, higher reward
+      foodList = self.getFood(successor).asList()  
+
+      foodList1 = self.getFood(gameState).asList()    
+      if not len(foodList) == 0 and  not len(foodList1) == 0:
+        minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
+        minDistance1 = min([self.getMazeDistance(currPos, food) for food in foodList1])
+
+        if minDistance < minDistance1:
+          reward += 1.0
+        else:
+          reward -= 1.0
 
     # Eat super food give one larger reward
     # Get capsule location after taking this action
@@ -327,21 +369,12 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
         reward = reward + 40
 
 
+    distanceToHome = self.getMazeDistance(myPos, self.start)
+    distanceToHome1 = self.getMazeDistance(currPos, self.start)
+    if currState.numCarrying >= 5 and distanceToHome < distanceToHome1:
+      reward += 2.0
 
-
-    # Closer to food, higher reward
-    foodList = self.getFood(successor).asList()    
-    minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
-
-    foodList1 = self.getFood(gameState).asList()    
-    minDistance1 = min([self.getMazeDistance(currPos, food) for food in foodList1])
-
-    if minDistance < minDistance1:
-      reward += 1.0
-    else:
-      reward -= 1.0
-
-
+    
 
 
 
@@ -368,9 +401,12 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
     features = self.getFeatures(gameState, action)
 
-    print reward
-    print maxValue
-    print difference
+    print "reward: ", reward
+    print "maxValue: ", maxValue
+    print "difference: ", difference
+    print "weights Before: ", weights
+    print "features Before: ", features
+    print "result Before: ", qValve
 
 
     weights['distanceToFood'] = weights['distanceToFood'] + self.alpha * difference * features['distanceToFood']

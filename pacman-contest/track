@@ -1,0 +1,33 @@
+Report:
+
+beat nothing doing agent with in 2 minutes distanceToFood:14.1528885665;distanceToCapsule:78.9971476801;distanceToGhost:11.2347846368;returnHome:-32.6123019937
+Trained 15 times
+self.epsilon = 0.4 #exploration prob
+    self.alpha = 0.4 #learning rate
+    self.discountRate = 0.95
+
+
+Lets changed lower as 0.3
+
+Lost, cause the distance to capsule is not float. Restart
+
+
+
+After 5 times training,
+we can now get foods and put it back home. Ignore the ghost because we are not using it.
+
+
+We use a large time limit to ensure we can meet food and ghost before we get into competation
+
+try 20 more training lets see the result
+result as image, all win the do nothing agent
+distanceToFood:12.1646184076;distanceToCapsule:63.2282666192;distanceToGhost:5.35128023918;returnHome:24.7299335371
+we can see, Now Food, capsule, return home after taken food is being perfect.
+But ghost distance is weird.
+because we are not eabling it
+
+Problem: ghost weight should be more important, however when dead ghost weight becomes not important
+
+
+Then, let us enable the defend function
+--alpha beta///
