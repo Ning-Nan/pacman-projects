@@ -3,46 +3,41 @@ from captureAgents import CaptureAgent
 import distanceCalculator
 import random, time, util, sys
 from game import Directions
+from game import Grid
 import game
 from util import nearestPoint
 import os
 
-#################
-# Team creation #
-#################
 
 def createTeam(firstIndex, secondIndex, isRed,
                first = 'OffensiveReflexAgent', second = 'DefensiveReflexAgent'):
 
   return [eval(first)(firstIndex), eval(second)(secondIndex)]
 
-##########
-# Agents #
-##########
-
 """
 To Run: python capture.py -r AQLearning
 
 """
-class ApproximateQLearningAgent(CaptureAgent):
+class MixAgent(CaptureAgent):
   """
       Class that will use ApproximateQLearning approch.
       Training result will save as txt file.(Hard Coding maybe for now.)
   """
  
   def registerInitialState(self, gameState):
-    # Weight using dictionary
+
     self.weight = {}
     self.weight['Defensive']= {}
-
     
     """
+    Back up weights for testing purpose
     self.weight['Offensive'] = {'distanceToFood': 1.0, 'distanceToCapsule':1.1,'DistanceToGhost':2.0,
                                 'returnHome': 2.0}
+    distanceToFood:21.1358828621;distanceToCapsule:72.076020285;distanceToGhost:-7.24735154835;returnHome:3.95426736099
     """
 
     # Set learning rate...etc
-    self.epsilon = 0.3 #exploration prob
+    self.epsilon = 0.1 #exploration prob
     self.alpha = 0.3 #learning rate
     self.discountRate = 0.95
 
@@ -55,12 +50,9 @@ class ApproximateQLearningAgent(CaptureAgent):
 
 
   def chooseAction(self, gameState):
-    self.readFile()
-    """
-    Picks among the actions with the highest Q(s,a).
-    """
 
-    # Legal Actions that you can take.
+    self.readFile()
+
     actions = gameState.getLegalActions(self.index)
 
     actions.remove('Stop')
@@ -103,9 +95,6 @@ class ApproximateQLearningAgent(CaptureAgent):
     """
     Computes a linear combination of features and feature weights
     """
-
-
-    # We get the Q value right from here.
     features = self.getFeatures(gameState, action)
     weights = self.getWeights(gameState, action)
 
@@ -113,15 +102,10 @@ class ApproximateQLearningAgent(CaptureAgent):
     return features * weights
 
 
-  """
-  This method will be called at the end of the game.
-  We should print final weight here.
-  Here we just use hard coding.
-  So print the updated weight, and take it from console to hard coding.
-  """
   def final(self, state):
     print self.getScore(state)
     print "Not Implemented"
+
 
   def readFile(self):
     if not os.path.exists("weight.txt"):
@@ -141,8 +125,6 @@ class ApproximateQLearningAgent(CaptureAgent):
         temp = pair.split(':')
         self.weight['Offensive'][temp[0]] = float(temp[1])
 
-    """self.weight['Offensive'] = {'distanceToFood': 1.0, 'distanceToCapsule':1.1,'DistanceToGhost':2.0,
-                                            'returnHome': 2.0}"""
 
 
   def writeFile(self,string):
@@ -160,13 +142,8 @@ class ApproximateQLearningAgent(CaptureAgent):
 
 
 
-class OffensiveReflexAgent(ApproximateQLearningAgent):
+class OffensiveReflexAgent(MixAgent):
 
-  # (DONE&NEEDS DEBUG)If we get closer to the nearest food, then the features should be higher (smaller distance, higher feature)
-  # (DONE&NEEDS DEBUG)If we get closer to the super food, then the features should be higher (smaller distance, higher feature)
-  # (DONE&NEEDS DEBUG)The more food we are carrying, the distance to return home will be more important (higher food, smaller distance to home, higer feature)
-  # (HALF DONE)If we get closer to the enermy, the features should be lower(smaller distance, smaller feature except they are scared or on our side)
-  # Please commit here what else should be done
   def getFeatures(self, gameState, action):
 
     features = util.Counter()
@@ -273,20 +250,17 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
     else:
       features['returnHome'] = 0
 
+    if myState.isPacman and foodCarrying > 0 :
+      features['returnHome'] += 1.0
     # This feature should be home distance * food carrying 
     # (more you are carrying, you will more need to go home)
 
     # ------------------------End--------------------------------------
 
 
-
     return features
 
 
-
-
-
-  # Not Implemented
   def getWeights(self, gameState, action):
     return self.weight['Offensive']
 
@@ -294,12 +268,6 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
   """
   Method to update weight and give rewards. 
   """
-  # (NOT DONE)Score should be considerd as reward
-  # (NOT DONE)if turned to super state should be given reward
-  # (NOT DONE)if ate ernemy should be given reward
-  # (NOT DONE)if died shoud be punish
-  # (NOT DONE)if stop then punish
-  # Please commit here what else should be done
   def update(self, gameState, action):
     successor = self.getSuccessor(gameState, action)
     myState = successor.getAgentState(self.index)
@@ -371,8 +339,10 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
     distanceToHome = self.getMazeDistance(myPos, self.start)
     distanceToHome1 = self.getMazeDistance(currPos, self.start)
-    if currState.numCarrying >= 5 and distanceToHome < distanceToHome1:
-      reward += 2.0
+    if distanceToHome < distanceToHome1:
+      reward += currState.numCarrying * 1.0
+    else:
+      reward -= currState.numCarrying * 1.0
 
     
 
@@ -429,43 +399,119 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
 
 
 
+class DefensiveReflexAgent(MixAgent):
+  
+  def chooseAction(self, gameState):
 
-class DefensiveReflexAgent(ApproximateQLearningAgent):
+      enemies = [a for a in self.getOpponents(gameState) if gameState.getAgentState(a).getPosition() != None]
+
+      def maxValue(gameState, depth):
+          if depth == 0 or gameState.isOver():
+              return (self.evaluationFunction(gameState), "Stop")
+          
+          enemy = min(enemies)
+          #legal actions
+          actions = gameState.getLegalActions(self.index)
+          #remove none type
+          actions.remove(Directions.STOP)
+          successors = [gameState.generateSuccessor(self.index, action) for action in actions]
+          values = [minValue(successor, enemy, depth)[0] for successor in successors]
+          maxScore = max(values)
+          bestMove = [index for index in range(len(values)) if values[index] == maxScore]
+          move = random.choice(bestMove)
+
+          return maxScore, actions[move]
+
+      def minValue(gameState, enemy, depth):
+
+          if depth == 0 or gameState.isOver():
+              return (self.evaluationFunction(gameState), "Stop")
+          # legal actions
+          actions = gameState.getLegalActions(enemy)
+          # remove none type
+          actions.remove(Directions.STOP)
+          successors = [gameState.generateSuccessor(enemy, action) for action in actions]
+          if enemy < max(enemies):
+              values = [minValue(successor, max(enemies), depth)[0] for successor in successors]
+          else:
+              values = [maxValue(successor, depth - 1)[0] for successor in successors]
+          minScore = min(values)
+
+          return minScore, Directions.STOP
+
+      if len(enemies) > 0:
+          action = maxValue(gameState, depth=2)[1]
+      else:
+          actions = gameState.getLegalActions(self.index)
+          actions.remove(Directions.STOP)
+          successors = [self.getSuccessor(gameState, action) for action in actions]
+          values = [self.evaluationFunction(successor) for successor in successors]
+          maxValue = max(values)
+          action = random.choice([a for a, v in zip(actions, values) if v == maxValue])
+          
+      return action
+
+  def evaluationFunction(self, gameState):
+
+        if self.red:
+            self.midWidth = (gameState.data.layout.width -1) / 2
+        else:
+            self.midWidth = ((gameState.data.layout.width - 1) / 2) + 1
+        self.midHeight = gameState.data.layout.height / 2
+        midPos = (self.midWidth,self.midHeight)
+        myPos = gameState.getAgentPosition(self.index)
+
+        """
+        FIX NEED TO CHANGE
+        """
+        walls = gameState.getWalls().asList()
+        temp = 1
+        while midPos in walls:
+          midPos = (self.midWidth,self.midHeight + temp)
+          temp += 1
 
 
-  # Not Implemented
-  def getFeatures(self, gameState, action):
-    features = util.Counter()
-    successor = self.getSuccessor(gameState, action)
+        distanceToMid = self.getMazeDistance(myPos, midPos)
+        distanceToEnemy = 999
+        seeEnemy = True
+        
+        enemies = [gameState.getAgentState(i) for i in self.getOpponents(gameState)]
+        invaders = [a for a in enemies if a.isPacman and a.getPosition() != None]
 
-    myState = successor.getAgentState(self.index)
-    myPos = myState.getPosition()
+        if len(invaders) > 0:
+            dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
+            distanceToInvader = min(dists)
+            seeEnemy = False
+        else:
+            distanceToInvader = distanceToMid
+            minDistance = 999
+            for enemy in enemies:
+                enemyPos = enemy.getPosition()
+                if enemyPos is not None:
+                    seeEnemy  = False
+                    newDistance = self.getMazeDistance(myPos,enemyPos)
+                    if newDistance < minDistance:
+                        minDistance = newDistance
 
-    # Computes whether we're on defense (1) or offense (0)
-    features['onDefense'] = 1
-    if myState.isPacman: features['onDefense'] = 0
+            distanceToEnemy = minDistance
 
-    # Computes distance to invaders we can see
-    enemies = [successor.getAgentState(i) for i in self.getOpponents(successor)]
-    invaders = [a for a in enemies if a.isPacman and a.getPosition() != None]
-    features['numInvaders'] = len(invaders)
-    if len(invaders) > 0:
-      dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
-      features['invaderDistance'] = min(dists)
+        if seeEnemy is True:
+            myPos = gameState.getAgentState(self.index).getPosition()
+            capsuleList = self.getCapsulesYouAreDefending(gameState)
+            foodList = self.getFoodYouAreDefending(gameState).asList()
+            minDistance = 0
+            if len(capsuleList) > 0:
+                for capsule in capsuleList:
+                    dist = self.getMazeDistance(capsule, myPos)
+                    minDistance += dist
+                minDistance /= len(capsuleList)
+            else:
+                for food in foodList:
+                    dist = self.getMazeDistance(food, myPos)
+                    minDistance += dist
+                minDistance /= len(foodList)
 
-    if action == Directions.STOP: features['stop'] = 1
-    rev = Directions.REVERSE[gameState.getAgentState(self.index).configuration.direction]
-    if action == rev: features['reverse'] = 1
-
-    return features
-
-  # Not Implemented
-  def getWeights(self, gameState, action):
-    return self.weight['Defensive']
+                distanceToEnemy = minDistance
 
 
-  """
-  Method to update weight. 
-  """
-  def update(self, gameState, action):
-    print ""
+        return -999 * len(invaders) -  9 * distanceToEnemy - 9 * distanceToInvader

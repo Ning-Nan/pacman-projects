@@ -1,1 +1,1 @@
-distanceToFood:21.1358828621;distanceToCapsule:72.076020285;distanceToGhost:-7.24735154835;returnHome:3.95426736099
+distanceToFood:-13.8590296764;distanceToCapsule:37.3598294508;distanceToGhost:-8.27170948895;returnHome:-62.0439759554
