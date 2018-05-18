@@ -246,7 +246,7 @@ class OffensiveReflexAgent(MixAgent):
     foodCarrying = myState.numCarrying
     distanceToHome = self.getMazeDistance(myPos, self.start)
     if not distanceToHome == 0:
-      features['returnHome'] = foodCarrying * 10.0/self.getMazeDistance(myPos, self.start)
+      features['returnHome'] = foodCarrying * 15.0/self.getMazeDistance(myPos, self.start)
     else:
       features['returnHome'] = 0
 
@@ -339,10 +339,9 @@ class OffensiveReflexAgent(MixAgent):
 
     distanceToHome = self.getMazeDistance(myPos, self.start)
     distanceToHome1 = self.getMazeDistance(currPos, self.start)
-    if distanceToHome < distanceToHome1:
-      reward += currState.numCarrying * 1.0
-    else:
-      reward -= currState.numCarrying * 1.0
+    if distanceToHome < distanceToHome1 and currState.numCarrying >= 4:
+      reward += 3.0
+
 
     
 
