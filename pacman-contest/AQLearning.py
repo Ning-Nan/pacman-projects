@@ -235,12 +235,12 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
       enemiesDistance = []
       for location in enermies:
         enemiesDistance.append(self.getMazeDistance(myPos,location))
-
-      features['distanceToGhost'] = min(enemiesDistance) /10.0
-      self.minGhost = min(enemiesDistance)
+      if not min(enemiesDistance) == 0:
+        features['distanceToGhost'] = 1.0/min(enemiesDistance) 
+        self.minGhost = min(enemiesDistance)
 
       if myPos == self.start :
-        features['distanceToGhost'] = 0.0
+        features['distanceToGhost'] = 1.0
 
         
 
@@ -248,11 +248,11 @@ class OffensiveReflexAgent(ApproximateQLearningAgent):
       newActions.remove('Stop')
 
       if len(newActions) == 1 and min(enemiesDistance)<= 3:
-        features['distanceToGhost'] = 0.0
+        features['distanceToGhost'] = 1.0
 
       for index in enermiesIndex:
         if not successor.getAgentState(index).scaredTimer == 0:
-          features['distanceToGhost'] = 6.0
+          features['distanceToGhost'] = 0.0
       # If I am not pacman should consider the ghoust one step away:
       
 
