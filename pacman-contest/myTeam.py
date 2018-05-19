@@ -447,7 +447,7 @@ class DefensiveReflexAgent(MixAgent):
           return minScore, Directions.STOP
 
       if len(enemies) > 0:
-          action = maxValue(gameState, depth=2)[1]
+          action = maxValue(gameState, depth=1)[1]
       else:
           actions = gameState.getLegalActions(self.index)
           actions.remove(Directions.STOP)
