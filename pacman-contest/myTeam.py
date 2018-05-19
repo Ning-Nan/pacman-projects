@@ -167,8 +167,14 @@ class OffensiveReflexAgent(MixAgent):
       minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
       features['distanceToFood'] = 1.0/minDistance
       # If this state eaten one food
+
       if len(foodList) < len(self.getFood(gameState).asList()):
+      	features['distanceToFood'] = 1.1
+
+    else:
+      if not len(self.getFood(gameState).asList()) == 0:
         features['distanceToFood'] = 1.1
+
     # ------------------------End--------------------------------------
 
 
