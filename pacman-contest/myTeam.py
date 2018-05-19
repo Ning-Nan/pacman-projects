@@ -211,7 +211,7 @@ class OffensiveReflexAgent(MixAgent):
       if gameState.getAgentPosition(index)!= None:
         enermies.append(gameState.getAgentPosition(index))
 
-    # Has defending enermy within 5 square
+    # Has defending enermy within 5 square 
     if enermies !=[]:
       
       # If I am pacman need to run away
@@ -220,8 +220,9 @@ class OffensiveReflexAgent(MixAgent):
       for location in enermies:
         enemiesDistance.append(self.getMazeDistance(myPos,location))
       if not min(enemiesDistance) == 0:
-        features['distanceToGhost'] = 1.0/min(enemiesDistance) 
-        self.minGhost = min(enemiesDistance)
+      	if not min(enemiesDistance) > 7:
+        	features['distanceToGhost'] = 1.0/min(enemiesDistance) 
+        	self.minGhost = min(enemiesDistance)
 
       if myPos == self.start :
         features['distanceToGhost'] = 1.0
