@@ -15,7 +15,7 @@ def createTeam(firstIndex, secondIndex, isRed,
   return [eval(first)(firstIndex), eval(second)(secondIndex)]
 
 """
-To Run: python capture.py -r AQLearning
+To Run: python capture.py -r myTeam
 
 """
 class MixAgent(CaptureAgent):
@@ -28,7 +28,7 @@ class MixAgent(CaptureAgent):
 
     self.weight = {}
     self.weight['Defensive']= {}
-    self.weight['Offensive']= {'distanceToFood':14.716097398,'distanceToCapsule':49.2499916681,'distanceToGhost':-5.12602548045,'returnHome':13.8876040896}
+    self.weight['Offensive']= {'distanceToFood':14.716097398,'distanceToCapsule':49.2499916681,'distanceToGhost':-6.02609598035,'returnHome':13.8876040896}
     
     """
     Back up weights for testing purpose
@@ -238,7 +238,8 @@ class OffensiveReflexAgent(MixAgent):
         if not successor.getAgentState(index).scaredTimer == 0:
           features['distanceToGhost'] = 0.0
       # If I am not pacman should consider the ghoust one step away:
-      
+    else:
+    	features['distanceToGhost'] = 0.0
 
     # nosiyDistance =  gameState.getAgentDistances()
     # Does not have enermy within 5 square

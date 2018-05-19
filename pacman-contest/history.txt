@@ -15384,3 +15384,12 @@ distanceToFood:14.6906072024;distanceToCapsule:49.2499916681;distanceToGhost:-5.
 distanceToFood:14.6988628077;distanceToCapsule:49.2499916681;distanceToGhost:-5.12602548045;returnHome:11.8876040896
 distanceToFood:14.7073548307;distanceToCapsule:49.2499916681;distanceToGhost:-5.12602548045;returnHome:11.8876040896
 distanceToFood:14.716097398;distanceToCapsule:49.2499916681;distanceToGhost:-5.12602548045;returnHome:11.8876040896
+distanceToFood:14.7084892199;distanceToCapsule:49.2436256415;distanceToGhost:-17.1260254805;returnHome:11.8876040896
+distanceToFood:14.7156893136;distanceToCapsule:49.2496257196;distanceToGhost:-17.1260254805;returnHome:11.8876040896
+distanceToFood:14.7230725007;distanceToCapsule:49.255752194;distanceToGhost:-17.1260254805;returnHome:11.8876040896
+distanceToFood:14.7306486217;distanceToCapsule:49.2620107287;distanceToGhost:-17.1260254805;returnHome:11.8876040896
+distanceToFood:14.7384283519;distanceToCapsule:49.2684073957;distanceToGhost:-17.1260254805;returnHome:11.8876040896
+distanceToFood:14.7464233003;distanceToCapsule:49.2749487171;distanceToGhost:-17.1260254805;returnHome:11.8876040896
+distanceToFood:14.7546461238;distanceToCapsule:49.281641713;distanceToGhost:-17.1260254805;returnHome:11.8876040896
+distanceToFood:14.7631106596;distanceToCapsule:49.2884939563;distanceToGhost:-17.1260254805;returnHome:11.8876040896
+distanceToFood:14.7718320796;distanceToCapsule:49.2955136358;distanceToGhost:-17.1260254805;returnHome:11.8876040896
