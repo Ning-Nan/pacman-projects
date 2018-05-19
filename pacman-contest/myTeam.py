@@ -484,13 +484,19 @@ class DefensiveReflexAgent(MixAgent):
         
         enemies = [gameState.getAgentState(i) for i in self.getOpponents(gameState)]
         invaders = [a for a in enemies if a.isPacman and a.getPosition() != None]
-
+        foodList = self.getFoodYouAreDefending(gameState).asList()
+        capsuleList = self.getCapsulesYouAreDefending(gameState)
         if len(invaders) > 0:
             dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
-            distanceToInvader = min(dists)
+            distanceToInvader = max(dists)
             seeEnemy = False
         else:
-            distanceToInvader = distanceToMid
+            foods = []
+            for food in foodList:
+                foods.append((self.getMazeDistance(midPos, food), food))
+            foods.sort()
+            chosenFood = random.choice(foods[:3])
+            distanceToInvader = self.getMazeDistance(myPos,chosenFood[1])
             minDistance = 999
             for enemy in enemies:
                 enemyPos = enemy.getPosition()
@@ -504,8 +510,6 @@ class DefensiveReflexAgent(MixAgent):
 
         if seeEnemy is True:
             myPos = gameState.getAgentState(self.index).getPosition()
-            capsuleList = self.getCapsulesYouAreDefending(gameState)
-            foodList = self.getFoodYouAreDefending(gameState).asList()
             minDistance = 0
             if len(capsuleList) > 0:
                 for capsule in capsuleList:
