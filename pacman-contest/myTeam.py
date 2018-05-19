@@ -19,13 +19,9 @@ To Run: python capture.py -r myTeam
 
 """
 class MixAgent(CaptureAgent):
-  """
-      Class that will use ApproximateQLearning approch.
-      Training result will save as txt file.(Hard Coding maybe for now.)
-  """
  
   def registerInitialState(self, gameState):
-
+    # Training was done on my local PC, 20 on do-nothing agent, 20 on baseline agent, 20 on self against
     self.weight = {}
     self.weight['Defensive']= {}
     self.weight['Offensive']= {'distanceToFood':15.718973298,'distanceToCapsule':50.1256914541,'distanceToGhost':-10.43534436423,'returnHome':13.8876040896}
@@ -35,6 +31,7 @@ class MixAgent(CaptureAgent):
     self.weight['Offensive'] = {'distanceToFood': 1.0, 'distanceToCapsule':1.1,'DistanceToGhost':2.0,
                                 'returnHome': 2.0}
     distanceToFood:21.1358828621;distanceToCapsule:72.076020285;distanceToGhost:-7.24735154835;returnHome:3.95426736099
+    distanceToFood':15.718973298,'distanceToCapsule':50.1256914541,'distanceToGhost':-10.43534436423,'returnHome':13.8876040896
     """
 
     # Set learning rate...etc
@@ -51,9 +48,10 @@ class MixAgent(CaptureAgent):
 
 
   def chooseAction(self, gameState):
-
-    #self.readFile()
+    # Training needs to read weights from file
+    # self.readFile()
     print "-------------------------------------------"
+    
     actions = gameState.getLegalActions(self.index)
 
     actions.remove('Stop')
@@ -74,6 +72,7 @@ class MixAgent(CaptureAgent):
         action = random.choice(actions)
 
     #self.update(gameState, action)
+
     print action
     print"ENd----------------------------------------------"
     return action
@@ -109,12 +108,11 @@ class MixAgent(CaptureAgent):
     return features * weights
 
 
-  def final(self, state):
-    print self.getScore(state)
-    print "Not Implemented"
-
 
   def readFile(self):
+    """
+    Read weights for training
+    """
     if not os.path.exists("weight.txt"):
       fo = open("weight.txt", "w")
       fo.write("distanceToFood:0.0;distanceToCapsule:0.0;distanceToGhost:0.0;returnHome:0.0");
@@ -135,6 +133,9 @@ class MixAgent(CaptureAgent):
 
 
   def writeFile(self,string):
+    """
+    Write weights for training
+    """
     
     fo = open("history.txt","a")
     fo.write(str(string))
@@ -150,7 +151,9 @@ class MixAgent(CaptureAgent):
 
 
 class OffensiveReflexAgent(MixAgent):
-
+  """
+  Offensive agent using Approximate Q Learning method
+  """
   def getFeatures(self, gameState, action):
 
     features = util.Counter()
@@ -166,12 +169,12 @@ class OffensiveReflexAgent(MixAgent):
     if not len(foodList) == 0:   
       minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
       features['distanceToFood'] = 1.0/minDistance
+      
       # If this state eaten one food
-
       if len(foodList) < len(self.getFood(gameState).asList()):
       	features['distanceToFood'] = 1.1
-
     else:
+      # If this state eaten one food (Last Food)
       if not len(self.getFood(gameState).asList()) == 0:
         features['distanceToFood'] = 1.1
 
@@ -226,12 +229,14 @@ class OffensiveReflexAgent(MixAgent):
       for location in enermies:
         enemiesDistance.append(self.getMazeDistance(myPos,location))
       if not min(enemiesDistance) == 0:
+        # Ignore teammates observation
       	if not min(enemiesDistance) > 7:
         	features['distanceToGhost'] = 1.0/min(enemiesDistance) 
         	self.minGhost = min(enemiesDistance)
+        # So closed to ghost, may be eaten
         if min(enemiesDistance) == 1:
         	features['distanceToGhost'] = 3.0 
-
+      # Were eaten
       if myPos == self.start :
         features['distanceToGhost'] = 3.0
 
@@ -239,20 +244,18 @@ class OffensiveReflexAgent(MixAgent):
 
       newActions = successor.getLegalActions(self.index)
       newActions.remove('Stop')
-
+      # Ghost is close and I am running to the corner. NO.(Applied for depth 1)
       if len(newActions) == 1 and min(enemiesDistance)<= 3:
         features['distanceToGhost'] = 3.0
 
+      # I dont care where is the ghost when they are scared
       for index in enermiesIndex:
         if not successor.getAgentState(index).scaredTimer == 0:
           features['distanceToGhost'] = 0.0
-      # If I am not pacman should consider the ghoust one step away:
-    else:
-    	features['distanceToGhost'] = 0.0
 
-    # nosiyDistance =  gameState.getAgentDistances()
-    # Does not have enermy within 5 square
-    # Not Implemented
+    else:
+      # For safe
+    	features['distanceToGhost'] = 0.0
 
     # ------------------------End--------------------------------------
 
@@ -355,6 +358,7 @@ class OffensiveReflexAgent(MixAgent):
         reward = reward + 40
 
 
+    # If you are carrying more than 4, and going home direction. Reward
     distanceToHome = self.getMazeDistance(myPos, self.start)
     distanceToHome1 = self.getMazeDistance(currPos, self.start)
     if distanceToHome < distanceToHome1 and currState.numCarrying >= 4:
