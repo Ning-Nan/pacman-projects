@@ -28,7 +28,7 @@ class MixAgent(CaptureAgent):
 
     self.weight = {}
     self.weight['Defensive']= {}
-    self.weight['Offensive']= {'distanceToFood':14.716097398,'distanceToCapsule':49.2499916681,'distanceToGhost':-6.02609598035,'returnHome':13.8876040896}
+    self.weight['Offensive']= {'distanceToFood':15.718973298,'distanceToCapsule':50.1256914541,'distanceToGhost':-10.43534436423,'returnHome':13.8876040896}
     
     """
     Back up weights for testing purpose
@@ -223,9 +223,11 @@ class OffensiveReflexAgent(MixAgent):
       	if not min(enemiesDistance) > 7:
         	features['distanceToGhost'] = 1.0/min(enemiesDistance) 
         	self.minGhost = min(enemiesDistance)
+        if min(enemiesDistance) == 1:
+        	features['distanceToGhost'] = 3.0 
 
       if myPos == self.start :
-        features['distanceToGhost'] = 1.0
+        features['distanceToGhost'] = 3.0
 
         
 
@@ -233,7 +235,7 @@ class OffensiveReflexAgent(MixAgent):
       newActions.remove('Stop')
 
       if len(newActions) == 1 and min(enemiesDistance)<= 3:
-        features['distanceToGhost'] = 1.0
+        features['distanceToGhost'] = 3.0
 
       for index in enermiesIndex:
         if not successor.getAgentState(index).scaredTimer == 0:
