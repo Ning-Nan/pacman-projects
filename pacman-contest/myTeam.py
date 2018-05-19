@@ -490,7 +490,7 @@ class DefensiveReflexAgent(MixAgent):
         capsuleList = self.getCapsulesYouAreDefending(gameState)
         if len(invaders) > 0:
             dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
-            distanceToInvader = max(dists)
+            distanceToInvader = min(dists)
             seeEnemy = False
         else:
             foods = []
@@ -527,4 +527,4 @@ class DefensiveReflexAgent(MixAgent):
                 distanceToEnemy = minDistance
 
 
-        return -999 * len(invaders) -  9 * distanceToEnemy - 9 * distanceToInvader
+        return -99999 * len(invaders) -  9 * distanceToEnemy - 99 * distanceToInvader
