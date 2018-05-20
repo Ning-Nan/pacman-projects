@@ -197,8 +197,10 @@ class OffensiveReflexAgent(MixAgent):
         capsuleDistance = []
         for location in nowCapsule:
           capsuleDistance.append(self.getMazeDistance(myPos,location))
-        features['distanceToCapsule'] = 1.0/min(capsuleDistance)
-
+        if not min(capsuleDistance) == 0:
+          features['distanceToCapsule'] = 1.0/min(capsuleDistance)
+        else:
+          features['distanceToCapsule'] = 1.1
     # ------------------------End--------------------------------------
 
 
