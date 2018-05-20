@@ -421,7 +421,7 @@ class OffensiveReflexAgent(MixAgent):
 
 
 class DefensiveReflexAgent(MixAgent):
-  
+  # defensive agents base on minmax method, idea from multiagent assignment
   def chooseAction(self, gameState):
 
       enemies = [a for a in self.getOpponents(gameState) if gameState.getAgentState(a).getPosition() != None]
@@ -459,7 +459,7 @@ class DefensiveReflexAgent(MixAgent):
           minScore = min(values)
 
           return minScore, Directions.STOP
-
+      #return actions base on found enemies or not
       if len(enemies) > 0:
           action = maxValue(gameState, depth=1)[1]
       else:
@@ -473,7 +473,7 @@ class DefensiveReflexAgent(MixAgent):
       return action
 
   def evaluationFunction(self, gameState):
-
+        #define middle position for red team and blue team
         if self.red:
             self.midWidth = (gameState.data.layout.width -1) / 2
         else:
@@ -481,7 +481,7 @@ class DefensiveReflexAgent(MixAgent):
         self.midHeight = gameState.data.layout.height / 2
         midPos = (self.midWidth,self.midHeight)
         myPos = gameState.getAgentPosition(self.index)
-
+        #Are there walls?
         """
         FIX NEED TO CHANGE
         """
@@ -491,15 +491,16 @@ class DefensiveReflexAgent(MixAgent):
           midPos = (self.midWidth,self.midHeight + temp)
           temp += 1
 
-
+        #get the maze distance between agent position and middle position
         distanceToMid = self.getMazeDistance(myPos, midPos)
         distanceToEnemy = 999
         seeEnemy = True
-        
+        #define enemies, invaders, foods, capule
         enemies = [gameState.getAgentState(i) for i in self.getOpponents(gameState)]
         invaders = [a for a in enemies if a.isPacman and a.getPosition() != None]
         foodList = self.getFoodYouAreDefending(gameState).asList()
         capsuleList = self.getCapsulesYouAreDefending(gameState)
+        #if find invaders go to eat it, otherwise check 3 food near middle  
         if len(invaders) > 0:
             dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
             distanceToInvader = min(dists)
@@ -538,5 +539,5 @@ class DefensiveReflexAgent(MixAgent):
 
                 distanceToEnemy = minDistance
 
-
+        # return base on different factors
         return -99999 * len(invaders) -  9 * distanceToEnemy - 99 * distanceToInvader
