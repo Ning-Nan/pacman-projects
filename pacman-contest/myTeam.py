@@ -24,7 +24,7 @@ class MixAgent(CaptureAgent):
     # Training was done on my local PC, 20 on do-nothing agent, 20 on baseline agent, 20 on self against
     self.weight = {}
     self.weight['Defensive']= {}
-    self.weight['Offensive']= {'distanceToFood':15.718973298,'distanceToCapsule':50.1256914541,'distanceToGhost':-10.43534436423,'returnHome':13.8876040896}
+    self.weight['Offensive']= {'distanceToFood':16.718973298,'distanceToCapsule':38.1256914541,'distanceToGhost':-8.43534436423,'returnHome':13.8876040896}
     
     """
     Back up weights for testing purpose
@@ -266,7 +266,7 @@ class OffensiveReflexAgent(MixAgent):
     foodCarrying = CurrState.numCarrying
     distanceToHome = self.getMazeDistance(myPos, self.start)
     if not distanceToHome == 0:
-      features['returnHome'] = foodCarrying * 15.0/self.getMazeDistance(myPos, self.start)
+      features['returnHome'] = foodCarrying * 20.0/self.getMazeDistance(myPos, self.start)
     else:
       features['returnHome'] = 0
 
