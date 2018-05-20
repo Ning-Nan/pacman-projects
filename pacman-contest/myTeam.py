@@ -230,7 +230,7 @@ class OffensiveReflexAgent(MixAgent):
         enemiesDistance.append(self.getMazeDistance(myPos,location))
       if not min(enemiesDistance) == 0:
         # Ignore teammates observation
-      	if not min(enemiesDistance) > 7:
+      	if myState.isPacman:
         	features['distanceToGhost'] = 1.0/min(enemiesDistance) 
         	self.minGhost = min(enemiesDistance)
         # So closed to ghost, may be eaten
